@@ -3,8 +3,7 @@ pipeline {
     stages {
         stage('Kodu Cek') {
             steps {
-                // Buraya kendi GitHub MHRS linkini yapistir
-                git 'https://github.com/KULLANICI_ADIN/MHRS.git'
+                git 'https://github.com/fatmanurasa27/MHRS.git'
             }
         }
         stage('Test') {
