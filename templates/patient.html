@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MHRS | Profesyonel Randevu Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --p-blue: #66a6ff; }
+        body { 
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); 
+            font-family: 'Poppins', sans-serif; min-height: 100vh; padding: 30px; 
+        }
+        .main-container { 
+            background: rgba(255, 255, 255, 0.96); border-radius: 35px; padding: 50px; 
+            box-shadow: 0 25px 70px rgba(0,0,0,0.15); border: 1px solid white; 
+        }
+        /* Alanları geniş tutuyoruz */
+        .appointment-card { 
+            background: white; border-radius: 22px; padding: 30px; margin-bottom: 20px; 
+            border-left: 12px solid var(--p-blue); display: flex; justify-content: space-between; 
+            align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.06); transition: 0.3s ease-in-out;
+        }
+        .appointment-card:hover { transform: scale(1.02); }
+        .form-select, .form-control { 
+            border-radius: 18px; padding: 18px; border: 2px solid #eee; margin-bottom: 25px; 
+            font-size: 1.05rem; background-color: #f8f9fa;
+        }
+        .btn-confirm { 
+            background: linear-gradient(135deg, #66a6ff, #89f7fe); border: none; color: white; 
+            padding: 20px; border-radius: 20px; font-weight: 700; width: 100%; font-size: 1.2rem;
+            box-shadow: 0 10px 20px rgba(102, 166, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+<div class="container main-container">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom pb-4">
+        <h1 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital-user me-3"></i>MHRS Portal</h1>
+        <button class="btn btn-outline-danger rounded-pill px-4 fw-bold" onclick="localStorage.clear(); window.location.href='/'">Çıkış</button>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-5">
+            <h4 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-calendar-plus me-2"></i>Yeni Randevu Talebi</h4>
+            <label class="small fw-bold text-muted ms-2">Poliklinik Seçimi</label>
+            <select id="b-sel" class="form-select" onchange="upDoc()">
+                <option value="">Branş Seçiniz...</option>
+                <option value="Dahiliye">Dahiliye (İç Hastalıkları)</option>
+                <option value="Göz">Göz Hastalıkları</option>
+                <option value="Kardiyoloji">Kardiyoloji</option>
+                <option value="Nöroloji">Nöroloji</option>
+                <option value="Ortopedi">Ortopedi</option>
+                <option value="KBB">Kulak Burun Boğaz</option>
+            </select>
+            
+            <label class="small fw-bold text-muted ms-2">Hekim Seçimi</label>
+            <select id="d-sel" class="form-select">
+                <option value="">Lütfen önce branş seçin</option>
+            </select>
+            
+            <label class="small fw-bold text-muted ms-2">Tarih ve Saat</label>
+            <input type="datetime-local" id="a-date" class="form-control">
+            
+            <button class="btn-confirm" onclick="saveApt()">Randevuyu Onayla</button>
+        </div>
+
+        <div class="col-lg-7">
+            <h4 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-clipboard-list me-2"></i>Yaklaşan Randevularım</h4>
+            <div id="apt-list-box">
+                <p class="text-center text-muted py-5">Verileriniz güvenle yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    // Çeşitlendirilmiş Doktor Veritabanı
+    const docDB = {
+        "Dahiliye": ["Dr. Fatas Aydın", "Dr. Mehmet Öz", "Dr. Canan Karatay"],
+        "Göz": ["Dr. Ahmet Işık", "Dr. Elif Bakış", "Dr. Sinan Gören"],
+        "Kardiyoloji": ["Prof. Dr. Kalp Atan", "Dr. Damar Uzman", "Dr. Arzu Çarpıntı"],
+        "Nöroloji": ["Prof. Dr. Zihin Aynası", "Dr. Beyin Gücü", "Dr. Sinirsel Bakış"],
+        "Ortopedi": ["Dr. Kemik Kıran", "Dr. Eklem Düzelt", "Dr. Mert Alçı"],
+        "KBB": ["Dr. Burun Açık", "Dr. Kulak Duyar", "Dr. Boğaz Sağlıklı"]
+    };
+    
+    function upDoc() {
+        const b = document.getElementById('b-sel').value;
+        const d = document.getElementById('d-sel');
+        d.innerHTML = docDB[b] ? docDB[b].map(x => `<option value="${x}">${x}</option>`).join('') : '<option>Branş Seçin</option>';
+    }
+
+    async function fetchList() {
+        if (!user) return;
+        try {
+            const res = await fetch(`/appointments/my-appointments/${user.id}`);
+            if(!res.ok) throw new Error("500");
+            const data = await res.json();
+            const box = document.getElementById('apt-list-box');
+            box.innerHTML = data.length === 0 ? '<div class="text-center text-muted py-5"><i class="fa-solid fa-calendar-day fa-3x mb-3 opacity-25"></i><br>Aktif randevunuz bulunmamaktadır.</div>' : "";
+            data.forEach(a => {
+                box.innerHTML += `<div class="appointment-card animate__animated animate__fadeIn">
+                    <div>
+                        <h4 class="fw-bold mb-2 text-primary">${a.department}</h4>
+                        <div class="text-dark fs-5 mb-1"><i class="fa-solid fa-user-md me-2 text-secondary"></i> ${a.doctor_name}</div>
+                        <div class="text-muted fw-bold"><i class="fa-solid fa-calendar-check me-2 text-primary"></i> ${a.date}</div>
+                    </div>
+                    <span class="badge bg-success rounded-pill px-4 py-2">Onaylandı</span>
+                </div>`;
+            });
+        } catch (e) {
+            document.getElementById('apt-list-box').innerHTML = `<div class="alert alert-danger rounded-4 p-4 text-center">Backend Hatası (500): Lütfen veritabanı dosyasını silip sunucuyu yeniden başlatın.</div>`;
+        }
+    }
+
+    async function saveApt() {
+        const payload = { 
+            patient_id: user.id, 
+            department: document.getElementById('b-sel').value, 
+            doctor: document.getElementById('d-sel').value, 
+            date: document.getElementById('a-date').value 
+        };
+        if(!payload.department || !payload.date) return alert("Lütfen tüm alanları seçin!");
+
+        const res = await fetch('/appointments/book', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(payload) 
+        });
+        
+        if(res.ok) { fetchList(); alert("Randevunuz Başarıyla Oluşturuldu!"); }
+    }
+    fetchList();
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MHRS | Hoş Geldiniz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            font-family: 'Poppins', sans-serif; margin: 0;
+        }
+        .main-container {
+            background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 850px; display: flex; overflow: hidden; position: relative;
+        }
+        .info-side {
+            width: 50%; background: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80') center/cover;
+            position: relative; color: white; padding: 40px; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .info-side::after { content: ""; position: absolute; inset: 0; background: rgba(0, 97, 255, 0.5); pointer-events: none; }
+        .form-side { width: 50%; padding: 40px; z-index: 5; background: white; }
+        .btn-action {
+            background: linear-gradient(135deg, #66a6ff, #89f7fe); border: none; color: white;
+            padding: 12px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .nav-pills .nav-link { color: #888; cursor: pointer; }
+        .nav-pills .nav-link.active { background: #8ec5fc !important; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div class="info-side">
+        <div style="position:relative; z-index:2;"><h3>MHRS</h3><p>Modern Sağlık Çözümleri</p></div>
+    </div>
+    <div class="form-side">
+        <ul class="nav nav-pills nav-justified mb-4" id="pills-tab">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#login-pane">Giriş</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#reg-pane">Kayıt</button></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="login-pane">
+                <input type="text" id="l_tc" class="form-control mb-3" placeholder="TC No (11 Hane)">
+                <input type="password" id="l_pw" class="form-control mb-4" placeholder="Şifre">
+                <button class="btn-action" onclick="handleLogin()">Sisteme Gir</button>
+            </div>
+            <div class="tab-pane fade" id="reg-pane">
+                <input type="text" id="r_tc" class="form-control mb-2" placeholder="TC No">
+                <input type="text" id="r_name" class="form-control mb-2" placeholder="Ad Soyad">
+                <input type="password" id="r_pw" class="form-control mb-3" placeholder="Şifre">
+                <button class="btn-action" onclick="handleRegister()">Hesap Oluştur</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function handleRegister() {
+        const payload = {
+            tc_no: document.getElementById('r_tc').value,
+            full_name: document.getElementById('r_name').value,
+            password: document.getElementById('r_pw').value
+        };
+        const res = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.msg);
+    }
+
+    async function handleLogin() {
+        const tc = document.getElementById('l_tc').value;
+        const pw = document.getElementById('l_pw').value;
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({tc_no: tc, password: pw})
+        });
+        const data = await res.json();
+        if(res.ok) {
+            localStorage.setItem('user', JSON.stringify(data));
+            window.location.href = "/patient_panel/" + data.id;
+        } else {
+            alert(data.msg);
+        }
+    }
+</script>
+</body>
+</html>
