@@ -3,7 +3,8 @@ pipeline {
     stages {
         stage('Kodu Cek') {
             steps {
-                git 'https://github.com/fatmanurasa27/MHRS.git'
+                // Sadece bu satırı değiştirdik, branch adını ekledik:
+                git branch: 'main', url: 'https://github.com/fatmanurasa27/MHRS.git'
             }
         }
         stage('Test') {
