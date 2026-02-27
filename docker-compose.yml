@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: mhrs_jenkins
+    ports:
+      - "8080:8080"    # Jenkins web arayüzü
+      - "50000:50000"  # Jenkins agent portu
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mhrs_db
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecurepassword   # Buradan kendi şifreni ayarlayabilirsin
+      MYSQL_DATABASE: mhrsdb
+      MYSQL_USER: mhrsuser
+      MYSQL_PASSWORD: mhrspass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+  mariadb_data:

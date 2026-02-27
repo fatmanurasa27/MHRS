@@ -1,10 +1,15 @@
 pipeline {
     agent any
-
     stages {
-        stage('Build Kontrol') {
+        stage('Kodu Cek') {
             steps {
-                echo 'MHRS pipeline çalışıyor 🚀'
+                // Buraya kendi GitHub MHRS linkini yapistir
+                git 'https://github.com/KULLANICI_ADIN/MHRS.git'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'MHRS kodlari Jenkins uzerine basariyla indirildi!'
             }
         }
     }
