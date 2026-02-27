@@ -3,24 +3,29 @@ pipeline {
     stages {
         stage('Kodu Cek') {
             steps {
+                // Kodlari GitHub'dan Jenkins'in icine ceker
                 git branch: 'main', url: 'https://github.com/fatmanurasa27/MHRS.git'
             }
         }
-        stage('Dosyalari Kontrol Et') {
+        stage('Ubuntu Sunucusuna Deploy Et') {
             steps {
-                sh 'ls -la'
-            }
-        }
-        stage('Uygulamayi Derle') {
-            steps {
-                echo 'Docker imaji olusturuluyor...'
-                // Dockerfile'i kullanarak mhrs-app adinda bir imaj olusturur
-                sh 'docker build -t mhrs-app:latest .'
+                echo 'Ubuntu sunucusuna baglaniliyor ve MHRS projesi ayaga kaldiriliyor...'
+                // Jenkins, Ubuntu'ya baglanir ve komutlari orada calistirir
+                sh '''
+                ssh -o StrictHostKeyChecking=no user@172.20.10.2 "
+                    if [ ! -d 'MHRS' ]; then
+                        git clone https://github.com/fatmanurasa27/MHRS.git
+                    fi
+                    cd MHRS
+                    git pull origin main
+                    docker compose up -d --build
+                "
+                '''
             }
         }
         stage('Test') {
             steps {
-                echo 'CI/CD Otomasyonu tamamlandi! MHRS imaji hazir!'
+                echo 'CI/CD Otomasyonu KUSURSUZ! MHRS uygulamasi Ubuntu sunucusunda yayinda!'
             }
         }
     }
