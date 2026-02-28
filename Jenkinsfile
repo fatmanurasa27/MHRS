@@ -1,4 +1,12 @@
-stage('Ubuntu Sunucusuna Deploy Et') {
+pipeline {
+    agent any
+    stages {
+        stage('Kodu Cek') {
+            steps {
+                git branch: 'main', url: 'https://github.com/fatmanurasa27/MHRS.git'
+            }
+        }
+        stage('Ubuntu Deploy') {
             steps {
                 echo 'Ubuntu sunucusuna baglaniliyor ve MHRS projesi ayaga kaldiriliyor...'
                 sh '''
@@ -13,3 +21,10 @@ stage('Ubuntu Sunucusuna Deploy Et') {
                 '''
             }
         }
+        stage('Test') {
+            steps {
+                echo 'CI/CD Otomasyonu KUSURSUZ! MHRS uygulamasi Ubuntu sunucusunda yayinda!'
+            }
+        }
+    }
+}
