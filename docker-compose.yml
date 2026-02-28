@@ -16,7 +16,7 @@ services:
     image: mariadb:latest
     container_name: mhrs_db
     environment:
-      MYSQL_ROOT_PASSWORD: mysecurepassword   # Buradan kendi şifreni ayarlayabilirsin
+      MYSQL_ROOT_PASSWORD: mysecurepassword
       MYSQL_DATABASE: mhrsdb
       MYSQL_USER: mhrsuser
       MYSQL_PASSWORD: mhrspass
@@ -24,6 +24,16 @@ services:
       - "3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+
+  # İŞTE EKSİK OLAN BAŞROL OYUNCUMUZ:
+  mhrs_app:
+    build: . 
+    container_name: mhrs_web
+    ports:
+      - "5000:5000"  # Eğer uygulaman 8000 veya başka bir porttaysa burayı ona göre değiştir
+    depends_on:
+      - mariadb
     restart: unless-stopped
 
 volumes:
