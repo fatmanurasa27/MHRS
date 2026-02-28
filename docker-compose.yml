@@ -1,18 +1,17 @@
 services:
-  db:
+db:
     image: mariadb:latest
     container_name: mhrs_db
     restart: always
-    env_file:
-      - .env
+    environment:
+      - MARIADB_ROOT_PASSWORD=12345
+      - MARIADB_DATABASE=mhrs
     ports:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
-      # init.sql dosyanın otomatik çalışması için:
-      - ./mhrs-projesi/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  web:
+      - ./mhrs-projesi/init.sql:/docker-entrypoint-initdb.d/init.sql 
+web:
     build: .
     container_name: mhrs_web
     restart: always
