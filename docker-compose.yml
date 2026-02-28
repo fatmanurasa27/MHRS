@@ -1,40 +1,27 @@
-version: '3.9'
-
 services:
-
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: mhrs_jenkins
-    ports:
-      - "8080:8080"    # Jenkins web arayüzü
-      - "50000:50000"  # Jenkins agent portu
-    volumes:
-      - jenkins_home:/var/jenkins_home
-    restart: unless-stopped
-
-  mariadb:
+  db:
     image: mariadb:latest
     container_name: mhrs_db
-    environment:
-      MYSQL_ROOT_PASSWORD: mysecurepassword
-      MYSQL_DATABASE: mhrsdb
-      MYSQL_USER: mhrsuser
-      MYSQL_PASSWORD: mhrspass
+    restart: always
+    env_file:
+      - .env
     ports:
       - "3306:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
-    restart: unless-stopped
+      - db_data:/var/lib/mysql
+      # init.sql dosyanın otomatik çalışması için:
+      - ./mhrs-projesi/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  mhrs_app:
-    build: . 
+  web:
+    build: .
     container_name: mhrs_web
+    restart: always
     ports:
-      - "5000:80"      # Dışarıdan 5000'e geleni Nginx'in 80 portuna yönlendirir
+      - "5000:5000"
     depends_on:
-      - mariadb
-    restart: unless-stopped
+      - db
+    env_file:
+      - .env
 
 volumes:
-  jenkins_home:
-  mariadb_data:
+  db_data:
