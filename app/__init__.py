@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-import os
 
 db = SQLAlchemy()
 
@@ -9,7 +8,7 @@ def create_app():
     app = Flask(__name__, template_folder='../templates')
     app.secret_key = 'cok_gizli_mhrs_anahtari'
     
-    # MariaDB Veritabanı Bağlantısı (3307 portunu dinlediğimizi unutma)
+    # MariaDB Veritabanı Bağlantısı
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@db:3306/mhrs'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
@@ -34,6 +33,29 @@ def create_app():
         date = db.Column(db.String(50), nullable=False)
         
         doctor = db.relationship('Doctor', backref=db.backref('appointments', lazy=True))
+
+    # --- SİHİRLİ DOKUNUŞ: TABLOLARI OTOMATİK OLUŞTUR VE DOKTORLARI EKLE ---
+    with app.app_context():
+        db.create_all() # Eğer tablolar yoksa anında oluşturur!
+        
+        # Eğer doktor tablosu boşsa, hastane kadromuzu otomatik ekle
+        if not Doctor.query.first():
+            default_doctors = [
+                Doctor(name='Dr. Ali Yılmaz', department='Kardiyoloji'),
+                Doctor(name='Dr. Ayşe Demir', department='Kardiyoloji'),
+                Doctor(name='Dr. Mehmet Kaya', department='Nöroloji'),
+                Doctor(name='Dr. Fatma Çelik', department='Nöroloji'),
+                Doctor(name='Dr. Mustafa Can', department='Ortopedi'),
+                Doctor(name='Dr. Zeynep Şahin', department='Ortopedi'),
+                Doctor(name='Dr. Burak Yıldız', department='Dahiliye'),
+                Doctor(name='Dr. Elif Aydın', department='Dahiliye'),
+                Doctor(name='Dr. Caner Tekin', department='Göz Hastalıkları'),
+                Doctor(name='Dr. Seda Korkmaz', department='Göz Hastalıkları'),
+                Doctor(name='Dr. Emre Polat', department='Cildiye'),
+                Doctor(name='Dr. Aslı Erdoğan', department='Cildiye')
+            ]
+            db.session.bulk_save_objects(default_doctors)
+            db.session.commit()
 
     # --- ROUTE'LAR (SAYFALAR) ---
     @app.route('/', methods=['GET', 'POST'])
