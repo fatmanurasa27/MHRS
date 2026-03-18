@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MHRS | Doktor Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-success mb-4">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#">🏥 MHRS Hekim Paneli</a>
+    <div class="d-flex align-items-center">
+        <span class="text-white me-3">Hoşgeldiniz, <b>{{ doctor_name }}</b></span>
+        <a href="/logout" class="btn btn-danger btn-sm">Çıkış Yap</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+    <div class="card shadow-sm border-0 border-top border-success border-4 p-4">
+        <h4 class="text-success border-bottom pb-2 mb-3">Randevulu Hastalarım</h4>
+        {% if appointments %}
+        <table class="table table-hover">
+            <thead class="table-success">
+                <tr><th>Tarih</th><th>Hasta Adı</th><th>İletişim</th><th>Durum</th></tr>
+            </thead>
+            <tbody>
+                {% for apt in appointments %}
+                <tr>
+                    <td><b>{{ apt.date }}</b></td>
+                    <td>{{ apt.patient.name }}</td>
+                    <td>{{ apt.patient.email }}</td>
+                    <td><span class="badge bg-success">Onaylandı</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-secondary text-center">Şu an için alınmış bir randevunuz bulunmamaktadır.</div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

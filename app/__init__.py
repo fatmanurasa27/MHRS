@@ -25,6 +25,8 @@ def create_app():
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String(100), nullable=False)
         department = db.Column(db.String(100), nullable=False)
+        email = db.Column(db.String(100), unique=True, nullable=False)
+        password = db.Column(db.String(200), nullable=False)
 
     class Appointment(db.Model):
         id = db.Column(db.Integer, primary_key=True)
@@ -33,35 +35,32 @@ def create_app():
         date = db.Column(db.String(50), nullable=False)
         
         doctor = db.relationship('Doctor', backref=db.backref('appointments', lazy=True))
+        patient = db.relationship('User', backref=db.backref('appointments', lazy=True))
 
-    # --- SİHİRLİ DOKUNUŞ: TABLOLARI OTOMATİK OLUŞTUR VE DOKTORLARI EKLE ---
+    # --- TABLOLARI VE DOKTORLARI OTOMATİK OLUŞTUR ---
     with app.app_context():
-        db.create_all() # Eğer tablolar yoksa anında oluşturur!
+        db.create_all() 
         
-        # Eğer doktor tablosu boşsa, hastane kadromuzu otomatik ekle
         if not Doctor.query.first():
-            default_doctors = [
-                Doctor(name='Dr. Ali Yılmaz', department='Kardiyoloji'),
-                Doctor(name='Dr. Ayşe Demir', department='Kardiyoloji'),
-                Doctor(name='Dr. Mehmet Kaya', department='Nöroloji'),
-                Doctor(name='Dr. Fatma Çelik', department='Nöroloji'),
-                Doctor(name='Dr. Mustafa Can', department='Ortopedi'),
-                Doctor(name='Dr. Zeynep Şahin', department='Ortopedi'),
-                Doctor(name='Dr. Burak Yıldız', department='Dahiliye'),
-                Doctor(name='Dr. Elif Aydın', department='Dahiliye'),
-                Doctor(name='Dr. Caner Tekin', department='Göz Hastalıkları'),
-                Doctor(name='Dr. Seda Korkmaz', department='Göz Hastalıkları'),
-                Doctor(name='Dr. Emre Polat', department='Cildiye'),
-                Doctor(name='Dr. Aslı Erdoğan', department='Cildiye')
+            # Doktorlara giriş yapabilmeleri için otomatik e-posta ve şifre atıyoruz
+            doc_data = [
+                ('Dr. Ali Yılmaz', 'Kardiyoloji', 'ali@mhrs.com'),
+                ('Dr. Ayşe Demir', 'Kardiyoloji', 'ayse@mhrs.com'),
+                ('Dr. Mehmet Kaya', 'Nöroloji', 'mehmet@mhrs.com'),
+                ('Dr. Fatma Çelik', 'Nöroloji', 'fatma@mhrs.com')
             ]
-            db.session.bulk_save_objects(default_doctors)
+            hashed_pw = generate_password_hash('12345') # Tüm doktorların şifresi 12345
+            docs = [Doctor(name=d[0], department=d[1], email=d[2], password=hashed_pw) for d in doc_data]
+            db.session.bulk_save_objects(docs)
             db.session.commit()
 
-    # --- ROUTE'LAR (SAYFALAR) ---
+    # --- HASTA SAYFALARI ---
     @app.route('/', methods=['GET', 'POST'])
     def index():
         if 'user_id' in session:
             return redirect(url_for('dashboard'))
+        elif 'doctor_id' in session:
+            return redirect(url_for('doctor_dashboard'))
 
         if request.method == 'POST':
             action = request.form.get('action')
@@ -109,10 +108,33 @@ def create_app():
         appointments = Appointment.query.filter_by(user_id=session['user_id']).all()
         return render_template('dashboard.html', doctors=doctors, appointments=appointments, user_name=session['user_name'])
 
+    # --- DOKTOR SAYFALARI (YENİ) ---
+    @app.route('/doctor_login', methods=['POST'])
+    def doctor_login():
+        email = request.form.get('email')
+        password = request.form.get('password')
+        doctor = Doctor.query.filter_by(email=email).first()
+        
+        if doctor and check_password_hash(doctor.password, password):
+            session['doctor_id'] = doctor.id
+            session['doctor_name'] = doctor.name
+            return redirect(url_for('doctor_dashboard'))
+        else:
+            flash('Hatalı doktor e-postası veya şifre!', 'danger')
+            return redirect(url_for('index'))
+
+    @app.route('/doctor_dashboard')
+    def doctor_dashboard():
+        if 'doctor_id' not in session:
+            return redirect(url_for('index'))
+            
+        appointments = Appointment.query.filter_by(doctor_id=session['doctor_id']).all()
+        return render_template('doctor_dashboard.html', appointments=appointments, doctor_name=session['doctor_name'])
+
+    # --- ORTAK ÇIKIŞ ---
     @app.route('/logout')
     def logout():
-        session.pop('user_id', None)
-        session.pop('user_name', None)
+        session.clear()
         return redirect(url_for('index'))
 
     return app

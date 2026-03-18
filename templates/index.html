@@ -18,7 +18,6 @@
             <div class="card p-4">
                 <div class="text-center mb-4">
                     <h2 class="text-primary fw-bold">MHRS Randevu Sistemi</h2>
-                    <p class="text-muted">Sağlığınız için tek tıkla randevu alın.</p>
                 </div>
                 
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -30,8 +29,9 @@
                 {% endwith %}
 
                 <ul class="nav nav-tabs nav-justified mb-3" id="myTab" role="tablist">
-                  <li class="nav-item" role="presentation"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">Giriş Yap</button></li>
-                  <li class="nav-item" role="presentation"><button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">Kayıt Ol</button></li>
+                  <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#login" type="button">Hasta Girişi</button></li>
+                  <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#register" type="button">Kayıt Ol</button></li>
+                  <li class="nav-item" role="presentation"><button class="nav-link text-success" data-bs-toggle="tab" data-bs-target="#doctor" type="button">Doktor Girişi</button></li>
                 </ul>
                 
                 <div class="tab-content">
@@ -50,6 +50,13 @@
                           <div class="mb-3"><label>E-posta</label><input type="email" name="email" class="form-control" required></div>
                           <div class="mb-3"><label>Şifre</label><input type="password" name="password" class="form-control" required></div>
                           <button type="submit" class="btn btn-info text-white w-100 fw-bold">Kayıt Ol</button>
+                      </form>
+                  </div>
+                  <div class="tab-pane fade" id="doctor" role="tabpanel">
+                      <form action="/doctor_login" method="POST">
+                          <div class="mb-3"><label>Doktor E-posta</label><input type="email" name="email" class="form-control" placeholder="Örn: ali@mhrs.com" required></div>
+                          <div class="mb-3"><label>Şifre</label><input type="password" name="password" class="form-control" value="12345" required></div>
+                          <button type="submit" class="btn btn-success text-white w-100 fw-bold">Doktor Olarak Giriş Yap</button>
                       </form>
                   </div>
                 </div>
